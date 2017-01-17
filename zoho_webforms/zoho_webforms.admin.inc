@@ -24,7 +24,7 @@ function zoho_webforms_admin_settings_form($form, &$form_state) {
   );
   $form['zoho_webforms_mapping'] = array(
     '#type' => 'textarea',
-    '#title' => t('Field mapping from Drupal -> Zoho. Enter one per line as webform_field_name|zoho_field_name'),
+    '#title' => t('Field mapping from Drupal -> Zoho. Enter one per line as webform_field_name|zoho_field_name. Multiple webform fields may map to the same Zoho field; only non-empty values will be passed.'),
     '#default_value' => variable_get('zoho_webforms_mapping', ''),
   );
   $form['zoho_webforms_other_fields'] = array(

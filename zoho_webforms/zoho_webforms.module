@@ -102,7 +102,7 @@ function zoho_webforms_make_submission($data, $zoho_module) {
   
   // data from form submission
   foreach ($data as $webform_key => $val) {
-    if (isset($map[$webform_key])) {
+    if (isset($map[$webform_key]) && !empty(trim($val))) {
       $fl .= '<FL val="' . trim($map[$webform_key]) . '">' . trim($val) . '</FL>';
     }
   }
@@ -112,5 +112,6 @@ function zoho_webforms_make_submission($data, $zoho_module) {
     <row no="1">' . $fl . '</row>
     </' . $zoho_module . '>
    ';
+   
   return $xml;
 }

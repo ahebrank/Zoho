@@ -4,3 +4,12 @@ core = 7.x
 configure = admin/config/services/zoho/webforms
 dependencies[] = zoho
 dependencies[] = webform
+dependencies[] = views
+
+; View integration for log
+files[] = views/zoho_webforms_views_handler_field_log_message.inc
+files[] = views/zoho_webforms_views_handler_field_xml.inc
+files[] = views/zoho_webforms_views_handler_field_severity.inc
+files[] = views/zoho_webforms_views_handler_filter_severity.inc
+files[] = views/zoho_webforms.views_default.inc
+files[] = views/zoho_webforms.views.inc

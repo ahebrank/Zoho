@@ -6,6 +6,60 @@
  */
 
 /**
+ * Implements hook_schema().
+ */
+function zoho_webforms_schema() {
+  $schema['zoho_webforms_log'] = array(
+    'description' => 'Table that contains logs of Zoho submission events.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique event ID.',
+      ),
+      'webform_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Node id of the source, if available.',
+      ),
+      'log_time' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Unix timestamp of when event occurred.',
+      ),
+      'message' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+        'description' => 'Text of log message.',
+      ),
+      'xml' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+        'description' => 'Zoho request XML',
+      ),
+      'severity' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The severity level of the event; ranges from 0 (Emergency) to 7 (Debug)',
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'log_time' => array('log_time'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
  * Implements hook_uninstall().
  */
 function zoho_webforms_uninstall() {

@@ -33,14 +33,17 @@ function zoho_webforms_webform_submission_insert($node, $submission) {
       // create the XML zoho needs
       $xml = zoho_webforms_make_submission($component_data, $zoho_module);
       // use the API to post it
-      $result = zoho_post_records($zoho_module, $xml);
+      $result = zoho_post_records($zoho_module, 'xmlData=' . $xml);
       if (!$result->success) {
-        watchdog('zoho_webforms',
-          'Error submitting to Zoho: :message  (:code)',
-          array(
-            ':message' => $result->message,
-            ':code' => $result->error,
+        $current_node = menu_get_object(); // this may be the same as $node
+        zoho_webforms_log($current_node->nid,
+          t('Error submitting to Zoho: :message  (:code)',
+            array(
+              ':message' => $result->message,
+              ':code' => $result->error,
+            )
           ),
+          $xml,
           WATCHDOG_ERROR);
       }
     }
@@ -97,21 +100,63 @@ function zoho_webforms_make_submission($data, $zoho_module) {
   // other preset fields
   $other_fields = zoho_webforms_get_map('zoho_webforms_other_fields');
   foreach ($other_fields as $zoho_key => $val) {
-    $fl .= '<FL val="' . trim($zoho_key) . '">' . trim($val) . '</FL>';
+    $fl .= '    <FL val="' . trim($zoho_key) . '">' . zoho_webforms_safe_val($val) . '</FL>' . "\n";
   }
   
   // data from form submission
   foreach ($data as $webform_key => $val) {
     if (isset($map[$webform_key]) && !empty(trim($val))) {
-      $fl .= '<FL val="' . trim($map[$webform_key]) . '">' . trim($val) . '</FL>';
+      $fl .= '    <FL val="' . trim($map[$webform_key]) . '">' . zoho_webforms_safe_val($val) . '</FL>' . "\n";
     }
   }
-  $xml ='xmlData=
-  
-    <' . $zoho_module . '>
-    <row no="1">' . $fl . '</row>
-    </' . $zoho_module . '>
-   ';
+  $xml ='
+<' . $zoho_module . '>
+  <row no="1">' . "\n" . $fl . '  </row>
+</' . $zoho_module . '>';
    
   return $xml;
+}
+
+/**
+ * Clean up key values
+ */
+function zoho_webforms_safe_val($val) {
+  $val = trim($val);
+  $val = "<![CDATA[" . urlencode($val) . "]]>";
+  return $val;
+}
+
+/**
+ * Writes to zoho log.
+ */
+function zoho_webforms_log($nid, $message, $xml, $severity = WATCHDOG_NOTICE) {
+  db_insert('zoho_webforms_log')
+    ->fields(array(
+      'webform_nid' => $nid,
+      'log_time' => time(),
+      'message' => $message,
+      'xml' => $xml,
+      'severity' => $severity,
+    ))
+    ->execute();
+}
+
+/**
+ * Implements hook_cron().
+ */
+function zoho_webforms_cron() {
+  // Expire old log entries (2 weeks)
+  db_delete('zoho_webforms_log')
+    ->condition('log_time', time() - 1209600, '<')
+    ->execute();
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function zoho_webforms_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'zoho_webforms') . '/views',
+  );
 }
